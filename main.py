@@ -1,36 +1,42 @@
-import time
 import requests
+import time
 
-TOKEN = "توکن‌ ربات‌تو‌ اینجا بذار"
-BASE_URL = f"https://bot.bale.ai/bot{TOKEN}"
-
-def send_message(chat_id, text):
-    url = f"{BASE_URL}/sendMessage"
-    payload = {"chat_id": chat_id, "text": text}
-    requests.post(url, json=payload)
+TOKEN = "1010361809:ZmiQrwFd9PDofNsoFFiGl67kG6Sk9znxqoLHZi27"
+API_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
 def get_updates(offset=None):
-    url = f"{BASE_URL}/getUpdates"
+    url = f"{API_URL}/getUpdates"
     params = {"offset": offset}
-    response = requests.get(url, params=params)
-    return response.json()
+    try:
+        response = requests.get(url, params=params)
+        return response.json()["result"]
+    except Exception as e:
+        print("❌ خطا در دریافت پیام‌ها:", e)
+        return []
+
+def send_message(chat_id, text):
+    url = f"{API_URL}/sendMessage"
+    payload = {"chat_id": chat_id, "text": text}
+    try:
+        requests.post(url, json=payload)
+    except Exception as e:
+        print("❌ خطا در ارسال پیام:", e)
 
 def main():
-    last_update_id = None
-    print("🤖 ربات سلف بله شروع به کار کرد ...")
+    print("✅ ربات بله روی Render با API جدید شروع به کار کرد...")
+    offset = None
     while True:
-        updates = get_updates(last_update_id)
-        for update in updates.get("result", []):
-            message = update.get("message", {})
-            chat_id = message.get("chat", {}).get("id")
-            text = message.get("text", "")
-
-            if chat_id and text:
-                send_message(chat_id, "سلام 👋")
-
-            last_update_id = update["update_id"] + 1
-
-        time.sleep(2)  # هر ۲ ثانیه چک کنه
+        updates = get_updates(offset)
+        for update in updates:
+            try:
+                chat_id = update["message"]["chat"]["id"]
+                user_text = update["message"].get("text", "")
+                print(f"📩 پیام جدید: {user_text}")
+                send_message(chat_id, "سلام از ربات بله!")
+                offset = update["update_id"] + 1
+            except Exception as e:
+                print("⚠️ خطا در پردازش پیام:", e)
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()
