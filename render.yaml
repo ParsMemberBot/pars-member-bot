@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pars-member-bot
+    env: python
+    buildCommand: ""
+    startCommand: "python main.py"
+    plan: free
+    region: oregon
+    autoDeploy: true
