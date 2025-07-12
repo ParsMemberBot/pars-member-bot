@@ -31,7 +31,8 @@ def webhook():
     return "OK", 200
 
 if __name__ == "__main__":
-    app.run()from flask import Flask, request
+    app.run()
+    from flask import Flask, request
 import requests
 
 app = Flask(__name__)
