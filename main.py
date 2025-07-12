@@ -1,42 +1,17 @@
 from flask import Flask, request
-import json
+import os
 
 app = Flask(__name__)
 
-TOKEN = "1010361809:ZmiQrwFd9PDofNsoFFiGl67kG6Sk9znxqoLHZi27"
-ADMIN_ID = "508276871"
-
 users = {}
-orders = []
-
-def save_data():
-    with open("data/users.json", "w") as f:
-        json.dump(users, f)
-    with open("data/orders.json", "w") as f:
-        json.dump(orders, f)
-
-def load_data():
-    global users, orders
-    try:
-        with open("data/users.json") as f:
-            users = json.load(f)
-        with open("data/orders.json") as f:
-            orders = json.load(f)
-    except:
-        users, orders = {}, []
-
-load_data()
+ADMIN_ID = "123456789"  # آیدی عددی ادمین را اینجا بذار
+TOKEN = "توکن_ربات_بله"
 
 def send_message(chat_id, text, buttons=None):
-    import requests
-    payload = {
-        "chat_id": chat_id,
-        "text": text,
-    }
-    if buttons:
-        payload["reply_markup"] = {"inline_keyboard": buttons}
-    headers = {"Content-Type": "application/json"}
-    requests.post(f"https://bot.bale.ai/bot{TOKEN}/sendMessage", json=payload, headers=headers)
+    print(f"ارسال به {chat_id}: {text}")
+
+def save_data():
+    pass
 
 @app.route("/", methods=["GET"])
 def home():
@@ -58,21 +33,21 @@ def webhook():
         save_data()
 
     if text == "/start":
-        send_message(chat_id, "سلام! 👋\nبرای ثبت سفارش از /order استفاده کن.\nبرای افزایش موجودی از /charge استفاده کن.\nبرای مشاهده موجودی از /balance استفاده کن.")
+        send_message(chat_id, "سلام! برای ثبت سفارش از /order استفاده کن.")
     elif text == "/balance":
         send_message(chat_id, f"موجودی شما: {users[user_id]['balance']} تومان")
     elif text == "/order":
-        send_message(chat_id, "لطفاً سرویس، تعداد، و لینک رو وارد کن. مثلا:\n\nسرویس ممبر واقعی\nتعداد: 1000\nلینک: https://t.me/test")
+        send_message(chat_id, "لینک و تعداد رو وارد کن...")
     elif text == "/charge":
-        send_message(chat_id, "مبلغ مورد نظرت رو برای شارژ بفرست (مثلا 10000).")
+        send_message(chat_id, "مبلغ مورد نظر را ارسال کنید (مثلا 10000)")
         users[user_id]["awaiting_charge"] = True
         save_data()
     elif users[user_id].get("awaiting_charge"):
         try:
             amount = int(text)
             users[user_id]["awaiting_charge"] = False
-            request_text = f"📥 درخواست افزایش موجودی:\nمبلغ: {amount} تومان\nاز کاربر: {chat_id}"
-            button = [[{"text": "✅ تایید افزایش", "callback_data": f"approve_{chat_id}_{amount}"}]]
+            request_text = f"📥 درخواست افزایش موجودی:\nمبلغ: {amount}\nاز کاربر: {user_id}"
+            button = [[{"text": "✅ تأیید افزایش", "callback_data": f"approve_{user_id}_{amount}"}]]
             send_message(ADMIN_ID, request_text, buttons=button)
             send_message(chat_id, "درخواست شما ثبت شد و منتظر تایید ادمین است.")
             save_data()
@@ -95,7 +70,9 @@ def callback():
         users[user_id]["balance"] += int(amount)
         save_data()
         send_message(user_id, f"✅ مبلغ {amount} تومان به موجودی شما اضافه شد.")
-        send_message(from_id, f"✅ شارژ شد ({user_id}) موجودی کاربر.")
+        send_message(from_id, f"✅ کاربر {user_id} شارژ شد.")
     return "OK"
-    if __name__ == "__main__":
-        app.run(host="0.0.0.0", port=10000)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
