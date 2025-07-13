@@ -74,7 +74,7 @@ def main():
 
             except Exception as e:
                 print("⚠️ خطا در پردازش پیام:", e)
-        time.sleep(1)
+        time.sleep(0.6)
 
 if __name__ == "__main__":
     main()
