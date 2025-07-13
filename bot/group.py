@@ -1,24 +1,18 @@
+import json
 import re
-from utils import send_message, kick_user
+from bot.utils import send_message, kick_user  # ← اصلاح مسیر ایمپورت
 
-# تنظیمات سراسری (غیرفردی)
+# تنظیمات کلی (برای همه گروه‌ها یکسان)
 WELCOME_MESSAGE = "خوش آمدی به گروه!"
 ANTI_LINK = True
 
 def handle_group_message(message):
     global WELCOME_MESSAGE, ANTI_LINK
 
-    # بررسی پایه‌ای برای جلوگیری از ارورهای KeyError
-    if "chat" not in message or "from" not in message:
-        return
-
-    text = message.get("text", "").strip()
-    group_id = message["chat"].get("id")
-    user_id = message["from"].get("id")
+    text = message.get("text", "")
+    group_id = message["chat"]["id"]
+    user_id = message["from"]["id"]
     username = message["from"].get("username", "ناشناس")
-
-    if not group_id or not user_id:
-        return
 
     # خوش‌آمدگویی به کاربران جدید
     if "new_chat_members" in message:
@@ -27,7 +21,7 @@ def handle_group_message(message):
             send_message(group_id, f"{name} عزیز، {WELCOME_MESSAGE}")
         return
 
-    # ضد لینک (پیام حاوی لینک)
+    # ضد لینک (برای همه پیام‌ها)
     if ANTI_LINK and re.search(r"(https?://|t\.me|ble\.ir|@[\w_]+)", text):
         send_message(group_id, "❗️ارسال لینک ممنوع است.")
         kick_user(group_id, user_id)
@@ -36,15 +30,12 @@ def handle_group_message(message):
     # مدیریت گروه - دستورات فارسی
     if text == "اخراج":
         reply = message.get("reply_to_message")
-        if reply and "from" in reply:
-            target_id = reply["from"].get("id")
-            if target_id:
-                kick_user(group_id, target_id)
-                send_message(group_id, "✅ کاربر با موفقیت اخراج شد.")
-            else:
-                send_message(group_id, "❗️شناسه کاربر یافت نشد.")
+        if reply:
+            target_id = reply["from"]["id"]
+            kick_user(group_id, target_id)
+            send_message(group_id, "✅ کاربر با موفقیت اخراج شد.")
         else:
-            send_message(group_id, "❗️برای اخراج، باید روی پیام فرد ریپلای کنید.")
+            send_message(group_id, "❗️برای اخراج، باید روی پیام کاربر ریپلای کنید.")
 
     elif text == "ضد لینک روشن":
         ANTI_LINK = True
@@ -58,6 +49,6 @@ def handle_group_message(message):
         new_msg = text.replace("تنظیم خوش‌آمد", "").strip()
         if new_msg:
             WELCOME_MESSAGE = new_msg
-            send_message(group_id, f"✅ پیام خوش‌آمد جدید تنظیم شد:\n{WELCOME_MESSAGE}")
+            send_message(group_id, f"✅ پیام خوش‌آمد جدید ثبت شد:\n{WELCOME_MESSAGE}")
         else:
-            send_message(group_id, "❗️لطفاً متن پیام خوش‌آمد را وارد کنید.")
+            send_message(group_id, "❗️لطفاً پیام خوش‌آمد را وارد کنید.")
