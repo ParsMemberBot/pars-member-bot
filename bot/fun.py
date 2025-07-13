@@ -1,5 +1,5 @@
 import random
-from bot.utils import send_message, chatgpt_response  # ✅ مسیر صحیح
+from bot.utils import send_message
 
 jokes = [
     "🤣 چرا برنامه‌نویسا هیچ‌وقت گم نمی‌شن؟ چون همیشه یه مسیر برگشتی دارن!",
@@ -55,5 +55,5 @@ def handle_fun_commands(message):
         if not prompt:
             send_message(chat_id, "❗️لطفاً بعد از دستور، سوال یا متن خود را بنویسید.")
         else:
-            response = chatgpt_response(prompt)
-            send_message(chat_id, response)
+            # پاسخ فرضی چون API چت‌جی‌پی‌تی مستقیم وصل نیست
+            send_message(chat_id, "🤖 در حال حاضر قابلیت هوش مصنوعی فعال نیست یا نیاز به اتصال دارد.")
