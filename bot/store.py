@@ -14,6 +14,7 @@ def handle_store(chat_id, user_id):
     buttons.append([{"text": "بازگشت", "callback_data": "back_to_menu"}])
     send_message(chat_id, "لطفاً یک دسته را انتخاب کنید:", {"keyboard": buttons, "resize_keyboard": True})
 
+
 def process_category_selection(chat_id, user_id, category_id):
     settings = load_data("data/settings.json")
     products = [p for p in settings.get("products", []) if p["category_id"] == category_id]
@@ -32,6 +33,7 @@ def process_category_selection(chat_id, user_id, category_id):
     buttons.append([{"text": "بازگشت", "callback_data": "store"}])
     send_message(chat_id, "یک محصول انتخاب کنید:", {"keyboard": buttons, "resize_keyboard": True})
 
+
 def process_product_selection(chat_id, user_id, product_id):
     users = load_data("data/users.json")
     user = users.get(str(user_id), {})
@@ -39,6 +41,7 @@ def process_product_selection(chat_id, user_id, product_id):
     users[str(user_id)] = user
     save_data("data/users.json", users)
     send_message(chat_id, "چه تعداد از این محصول می‌خواهید سفارش دهید؟")
+
 
 def process_quantity_input(chat_id, user_id, quantity_text):
     users = load_data("data/users.json")
@@ -51,7 +54,7 @@ def process_quantity_input(chat_id, user_id, quantity_text):
 
     try:
         quantity = int(quantity_text)
-    except:
+    except ValueError:
         send_message(chat_id, "لطفاً تعداد را به‌صورت عدد وارد کنید.")
         return
 
@@ -63,10 +66,10 @@ def process_quantity_input(chat_id, user_id, quantity_text):
 
     min_q = product.get("min", 1)
     max_q = product.get("max", 1000)
-    if min_q and quantity < min_q:
+    if quantity < min_q:
         send_message(chat_id, f"حداقل تعداد سفارش برای این محصول {min_q} است.")
         return
-    if max_q and quantity > max_q:
+    if quantity > max_q:
         send_message(chat_id, f"حداکثر تعداد سفارش برای این محصول {max_q} است.")
         return
 
@@ -74,6 +77,7 @@ def process_quantity_input(chat_id, user_id, quantity_text):
     users[str(user_id)] = user
     save_data("data/users.json", users)
     send_message(chat_id, "توضیحات سفارش را وارد کنید (اختیاری است). اگر توضیحی ندارید، فقط عدد 0 را بفرستید.")
+
 
 def process_description_input(chat_id, user_id, text):
     users = load_data("data/users.json")
@@ -85,8 +89,13 @@ def process_description_input(chat_id, user_id, text):
     if not state.startswith("awaiting_description_"):
         return
 
-    _, product_id, quantity = state.split("_")[2:]
-    quantity = int(quantity)
+    try:
+        _, product_id, quantity = state.split("_")[2:]
+        quantity = int(quantity)
+    except Exception:
+        send_message(chat_id, "خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.")
+        return
+
     description = "" if text.strip() == "0" else text.strip()
     product = next((p for p in settings.get("products", []) if p["id"] == product_id), None)
 
@@ -115,13 +124,14 @@ def process_description_input(chat_id, user_id, text):
     # ارسال به کانال فرم سفارش
     channel_id = settings.get("order_channel_id")
     if channel_id:
-        order_text = f"""📦 سفارش جدید ثبت شد:
-
-🆔 آیدی سفارش: {order_id}
-📌 محصول: {product['title']}
-🔢 تعداد: {quantity}
-👤 کاربر: {user_id}
-📝 توضیح: {description or 'ندارد'}"""
+        order_text = (
+            f"📦 سفارش جدید ثبت شد:\n\n"
+            f"🆔 آیدی سفارش: {order_id}\n"
+            f"📌 محصول: {product['title']}\n"
+            f"🔢 تعداد: {quantity}\n"
+            f"👤 کاربر: {user_id}\n"
+            f"📝 توضیح: {description or 'ندارد'}"
+        )
         send_message(channel_id, order_text)
 
     send_message(chat_id, "✅ سفارش شما با موفقیت ثبت شد و در حال بررسی است.")
