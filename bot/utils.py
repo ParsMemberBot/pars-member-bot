@@ -1,35 +1,45 @@
 import json
-import os
 import requests
 
+# ارسال پیام متنی ساده
 def send_message(chat_id, text, reply_markup=None):
-    from main import API_URL
+    from bot.main import API_URL
     data = {"chat_id": chat_id, "text": text}
     if reply_markup:
         data["reply_markup"] = json.dumps(reply_markup)
-    try:
-        requests.post(API_URL + "sendMessage", data=data)
-    except:
-        pass
+    requests.post(API_URL + "sendMessage", data=data)
 
-def load_data(file_path):
-    if not os.path.exists(file_path):
-        return {}
-    with open(file_path, "r", encoding="utf-8") as f:
-        try:
-            return json.load(f)
-        except:
-            return {}
+# اخراج کاربر از گروه
+def kick_user(chat_id, user_id):
+    from bot.main import API_URL
+    data = {
+        "chat_id": chat_id,
+        "user_id": user_id
+    }
+    requests.post(API_URL + "kickChatMember", data=data)
 
-def save_data(file_path, data):
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
+# درخواست از API چت‌جی‌پی‌تی (از API آماده استفاده می‌کنیم)
 def chatgpt_response(prompt):
     try:
         url = f"https://li.linto.ir/api/bingchat/?text={prompt}"
-        res = requests.get(url, timeout=15)
-        data = res.json()
-        return data.get("result", {}).get("text", "❌ پاسخی از هوش مصنوعی دریافت نشد.")
-    except Exception as e:
-        return f"⚠️ خطا در ارتباط با هوش مصنوعی: {e}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("result", {}).get("text", "❌ پاسخ نامشخص از هوش مصنوعی دریافت شد.")
+        else:
+            return "❌ خطا در ارتباط با API هوش مصنوعی."
+    except:
+        return "❌ ارتباط با سرور هوش مصنوعی برقرار نشد."
+
+# لود داده‌ها از فایل
+def load_data(path):
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except:
+        return {}
+
+# ذخیره داده‌ها در فایل
+def save_data(path, data):
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
