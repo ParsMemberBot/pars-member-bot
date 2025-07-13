@@ -1,45 +1,19 @@
-from bot.utils import send_message
-from bot.store import handle_store
-from bot.admin import handle_admin_panel
-from bot.group import handle_group_message
-from bot.fun import handle_fun_commands  # اصلاح اسم تابع
+from bot.utils import send_message, load_data, save_data
+from bot.buttons import main_menu_keyboard
 
-def handle_command(message, is_group=False):
-    if not message:
-        return
+def handle_start(chat_id, user_id):
+    users = load_data("data/users.json")
+    if str(user_id) not in users:
+        users[str(user_id)] = {
+            "balance": 0,
+            "orders": [],
+            "warns": 0
+        }
+        save_data("data/users.json", users)
 
-    chat = message.get("chat", {})
-    user = message.get("from", {})
-    text = message.get("text", "").strip()
+    text = "👋 خوش آمدید!\nبه ربات فروش خدمات و مدیریت گروه خوش آمدید."
+    send_message(chat_id, text, reply_markup=main_menu_keyboard())
 
-    chat_id = chat.get("id")
-    user_id = user.get("id")
-
-    if not chat_id or not user_id:
-        return  # جلوگیری از ارور در صورت ناقص بودن داده‌ها
-
-    if is_group:
-        handle_group_message(message)
-        return
-
-    if text == "/start":
-        send_main_menu(chat_id)
-    elif "فروشگاه" in text:
-        handle_store(chat_id, user_id)
-    elif "پنل مدیریت" in text:
-        handle_admin_panel(chat_id, user_id)
-    elif text in ["جوک", "فال"] or text.startswith("/ai") or text.startswith("هوش مصنوعی") or text.startswith("ربات"):
-        handle_fun_commands(message)
-    else:
-        send_message(chat_id, "❗️دستور نامعتبر است. لطفاً از منو استفاده کنید.")
-
-def send_main_menu(chat_id):
-    buttons = [
-        [{"text": "🛍 فروشگاه"}, {"text": "🎉 سرگرمی"}],
-        [{"text": "📞 پشتیبانی"}, {"text": "⚙️ پنل مدیریت"}]
-    ]
-    reply_markup = {
-        "keyboard": buttons,
-        "resize_keyboard": True
-    }
-    send_message(chat_id, "از منوی زیر استفاده کنید:", reply_markup)
+def handle_menu(chat_id, user_id):
+    text = "📋 منوی اصلی را انتخاب کنید:"
+    send_message(chat_id, text, reply_markup=main_menu_keyboard())
