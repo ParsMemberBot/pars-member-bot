@@ -1,5 +1,5 @@
 import random
-from utils import send_message, chatgpt_response
+from bot.utils import send_message, chatgpt_response  # ✅ مسیر صحیح
 
 jokes = [
     "🤣 چرا برنامه‌نویسا هیچ‌وقت گم نمی‌شن؟ چون همیشه یه مسیر برگشتی دارن!",
@@ -38,36 +38,22 @@ fortunes = [
 ]
 
 def handle_fun_commands(message):
-    if not message:
-        return  # امنیت: پیام خالی
-
     text = message.get("text", "")
-    user = message.get("from", {})
-    chat = message.get("chat", {})
-    user_id = user.get("id")
-    chat_id = chat.get("id")
-
-    if not chat_id:
-        return  # امنیت: اگر شناسه چت نداشت، کاری نکن
+    user_id = message["from"]["id"]
+    chat_id = message["chat"]["id"]
 
     if text == "جوک":
-        send_message(chat_id, random.choice(jokes))
+        joke = random.choice(jokes)
+        send_message(chat_id, joke)
 
     elif text == "فال":
-        send_message(chat_id, random.choice(fortunes))
+        fortune = random.choice(fortunes)
+        send_message(chat_id, fortune)
 
     elif text.startswith("/ai") or text.startswith("هوش مصنوعی") or text.startswith("ربات"):
-        prompt = (
-            text.replace("/ai", "")
-            .replace("هوش مصنوعی", "")
-            .replace("ربات", "")
-            .strip()
-        )
+        prompt = text.replace("/ai", "").replace("هوش مصنوعی", "").replace("ربات", "").strip()
         if not prompt:
             send_message(chat_id, "❗️لطفاً بعد از دستور، سوال یا متن خود را بنویسید.")
         else:
-            try:
-                response = chatgpt_response(prompt)
-                send_message(chat_id, response)
-            except Exception as e:
-                send_message(chat_id, "⚠️ خطایی در پاسخ هوش مصنوعی رخ داد. لطفاً دوباره تلاش کنید.")
+            response = chatgpt_response(prompt)
+            send_message(chat_id, response)
