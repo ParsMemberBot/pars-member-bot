@@ -9,7 +9,7 @@ from bot.admin import handle_admin_panel
 from bot.group import handle_group_message
 from bot.fun import handle_fun
 
-TOKEN = "توکن_ربات_بله_را_اینجا_بگذار"
+TOKEN = "1010361809:ZmiQrwFd9PDofNsoFFiGl67kG6Sk9znxqoLHZi27"
 API_URL = f"https://tapi.bale.ai/bot{TOKEN}/"
 
 OFFSET_FILE = "data/offset.txt"
