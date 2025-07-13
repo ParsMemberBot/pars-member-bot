@@ -5,17 +5,22 @@ def load_data(filename):
     try:
         with open(filename, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
 def save_data(filename, data):
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    try:
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"خطا در ذخیره‌سازی {filename}:", e)
 
 def send_message(chat_id, text, reply_markup=None):
-    from main import API_URL
-    data = {"chat_id": chat_id, "text": text}
-    if reply_markup:
-        import json
-        data["reply_markup"] = json.dumps(reply_markup)
-    requests.post(API_URL + "sendMessage", data=data)
+    try:
+        from main import API_URL
+        data = {"chat_id": chat_id, "text": text}
+        if reply_markup:
+            data["reply_markup"] = json.dumps(reply_markup, ensure_ascii=False)
+        requests.post(API_URL + "sendMessage", data=data)
+    except Exception as e:
+        print("خطا در ارسال پیام:", e)
