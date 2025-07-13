@@ -7,8 +7,9 @@ from bot.commands import handle_start, handle_menu
 from bot.store import handle_store
 from bot.admin import handle_admin_panel
 from bot.group import handle_group_message
-from bot.fun import handle_fun
+from bot.fun import handle_fun_commands  # اصلاح شده
 
+# ✅ توکن واقعی ربات شما
 TOKEN = "1010361809:ZmiQrwFd9PDofNsoFFiGl67kG6Sk9znxqoLHZi27"
 API_URL = f"https://tapi.bale.ai/bot{TOKEN}/"
 
@@ -47,13 +48,13 @@ def handle_update(update):
         handle_store(chat_id, user_id)
     elif text in ["پنل مدیریت", "/admin"]:
         handle_admin_panel(chat_id, user_id)
-    elif text in ["جوک", "فال", "/ai", "هوش مصنوعی", "ربات"]:
-        handle_fun(chat_id, user_id, text)
+    elif text in ["جوک", "فال"] or text.startswith("/ai") or text.startswith("هوش مصنوعی") or text.startswith("ربات"):
+        handle_fun_commands(msg)
     else:
-        handle_group_message(chat_id, user_id, text)
+        handle_group_message(msg)
 
 def main():
-    print("ربات روشن است.")
+    print("🤖 ربات روشن است.")
     offset = 0
     if os.path.exists(OFFSET_FILE):
         with open(OFFSET_FILE) as f:
@@ -65,9 +66,10 @@ def main():
 
     while True:
         updates = get_updates(offset)
-        for update in updates:
-            handle_update(update)
-            offset = update["update_id"] + 1
+        if updates:
+            for update in updates:
+                handle_update(update)
+                offset = update["update_id"] + 1
             with open(OFFSET_FILE, "w") as f:
                 f.write(str(offset))
         time.sleep(1)
