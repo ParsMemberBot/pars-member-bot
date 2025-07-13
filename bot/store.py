@@ -1,9 +1,9 @@
 import json
+import time
 from bot.utils import load_data, save_data, send_message
 
 def handle_store(chat_id, user_id):
     settings = load_data("data/settings.json")
-    products = settings.get("products", [])
     categories = settings.get("categories", [])
 
     if not categories:
@@ -12,7 +12,6 @@ def handle_store(chat_id, user_id):
 
     buttons = [[{"text": cat["title"], "callback_data": f"cat_{cat['id']}"}] for cat in categories]
     buttons.append([{"text": "بازگشت", "callback_data": "back_to_menu"}])
-
     send_message(chat_id, "لطفاً یک دسته را انتخاب کنید:", {"keyboard": buttons, "resize_keyboard": True})
 
 def process_category_selection(chat_id, user_id, category_id):
@@ -62,7 +61,6 @@ def process_quantity_input(chat_id, user_id, quantity_text):
         send_message(chat_id, "محصول یافت نشد.")
         return
 
-    # بررسی حداقل و حداکثر
     min_q = product.get("min", 1)
     max_q = product.get("max", 1000)
     if min_q and quantity < min_q:
@@ -96,7 +94,10 @@ def process_description_input(chat_id, user_id, text):
         send_message(chat_id, "محصول مورد نظر یافت نشد.")
         return
 
-    order_id = str(len(orders) + 1)
+    # ساخت آیدی سفارش با زمان و آیدی کاربر
+    timestamp = int(time.time())
+    order_id = f"{user_id}_{timestamp}"
+
     new_order = {
         "id": order_id,
         "user_id": user_id,
@@ -115,12 +116,13 @@ def process_description_input(chat_id, user_id, text):
     # ارسال به کانال فرم سفارش
     channel_id = settings.get("order_channel_id")
     if channel_id:
-        order_text = f"✅ سفارش جدید:
+        order_text = f"""📦 سفارش جدید ثبت شد:
 
-محصول: {product['title']}
-تعداد: {quantity}
-کاربر: {user_id}
-توضیح: {description or 'ندارد'}"
+🆔 آیدی سفارش: {order_id}
+📌 محصول: {product['title']}
+🔢 تعداد: {quantity}
+👤 کاربر: {user_id}
+📝 توضیح: {description or 'ندارد'}"""
         send_message(channel_id, order_text)
 
-    send_message(chat_id, "سفارش شما با موفقیت ثبت شد و در حال بررسی است.")
+    send_message(chat_id, "✅ سفارش شما با موفقیت ثبت شد و در حال بررسی است.")
