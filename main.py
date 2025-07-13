@@ -21,7 +21,8 @@ def get_updates(offset=None):
             params["offset"] = offset
         res = requests.get(API_URL + "getUpdates", params=params)
         return res.json()["result"]
-    except:
+    except Exception as e:
+        print("خطا در دریافت آپدیت‌ها:", e)
         return []
 
 def send_message(chat_id, text, reply_markup=None):
@@ -56,7 +57,12 @@ def main():
     offset = 0
     if os.path.exists(OFFSET_FILE):
         with open(OFFSET_FILE) as f:
-            offset = int(f.read())
+            try:
+                offset = int(f.read())
+            except Exception as e:
+                print("خطا در خواندن offset.txt:", e)
+                offset = 0
+
     while True:
         updates = get_updates(offset)
         for update in updates:
