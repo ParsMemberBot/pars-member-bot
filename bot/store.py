@@ -94,7 +94,6 @@ def process_description_input(chat_id, user_id, text):
         send_message(chat_id, "محصول مورد نظر یافت نشد.")
         return
 
-    # ساخت آیدی سفارش با زمان و آیدی کاربر
     timestamp = int(time.time())
     order_id = f"{user_id}_{timestamp}"
 
