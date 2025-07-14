@@ -9,7 +9,6 @@ def load_data(file_path):
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except:
-        # اگر فایل وجود نداشت، برای لیست و دیکشنری بررسی کن
         return [] if file_path.endswith(".json") else {}
 
 def save_data(file_path, data):
@@ -58,3 +57,13 @@ def edit_message(chat_id, message_id, text):
         requests.post(API_URL + "editMessageText", json=payload)
     except Exception as e:
         print("❌ خطا در ویرایش پیام:", e)
+
+def send_menu(chat_id):
+    text = "به منوی اصلی خوش آمدید 😊"
+    buttons = [
+        [{"text": "🛒 فروشگاه", "callback_data": "store"}],
+        [{"text": "👤 حساب کاربری", "callback_data": "profile"}],
+        [{"text": "🛠 مدیریت گروه", "callback_data": "group"}],
+        [{"text": "📞 پشتیبانی", "callback_data": "support"}]
+    ]
+    send_buttons(chat_id, text, buttons)
