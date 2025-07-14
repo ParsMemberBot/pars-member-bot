@@ -7,7 +7,7 @@ from bot.commands import handle_start, handle_menu
 from bot.store import handle_store
 from bot.admin import handle_admin_panel
 from bot.group import handle_group_message
-from bot.fun import handle_fun_commands  # اصلاح شده
+from bot.fun import handle_fun_commands
 
 # ✅ توکن واقعی ربات شما
 TOKEN = "1010361809:ZmiQrwFd9PDofNsoFFiGl67kG6Sk9znxqoLHZi27"
@@ -32,6 +32,16 @@ def send_message(chat_id, text, reply_markup=None):
         data["reply_markup"] = json.dumps(reply_markup)
     requests.post(API_URL + "sendMessage", data=data)
 
+def handle_support(chat_id):
+    text = "جهت ارتباط با پشتیبانی به آیدی زیر پیام دهید:\n@CyrusParsy"
+    send_message(chat_id, text)
+
+def handle_profile(chat_id, user_id):
+    users = load_data("data/users.json")
+    user = users.get(str(user_id), {"balance": 0, "orders": []})
+    text = f"💼 حساب کاربری شما:\n\n👤 آیدی عددی: {user_id}\n💰 موجودی: {user['balance']} تومان\n🛒 تعداد سفارش‌ها: {len(user['orders'])}"
+    send_message(chat_id, text)
+
 def handle_update(update):
     if "message" not in update:
         return
@@ -50,6 +60,10 @@ def handle_update(update):
         handle_admin_panel(chat_id, user_id)
     elif text in ["جوک", "فال"] or text.startswith("/ai") or text.startswith("هوش مصنوعی") or text.startswith("ربات"):
         handle_fun_commands(msg)
+    elif text.startswith("پشتیبانی") or "پشتیبانی" in text:
+        handle_support(chat_id)
+    elif text.startswith("حساب کاربری") or "حساب" in text:
+        handle_profile(chat_id, user_id)
     else:
         handle_group_message(msg)
 
