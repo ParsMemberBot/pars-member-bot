@@ -3,18 +3,26 @@ from bot.config import TOKEN
 
 API_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
-def send_message(chat_id, text, keyboard=None):
+def send_message(chat_id, text, keyboard=None, inline=False):
     url = f"{API_URL}/sendMessage"
     data = {
         "chatId": chat_id,
         "message": text
     }
     if keyboard:
-        data["replyMarkup"] = {
-            "inlineKeyboard": keyboard
-        }
+        if inline:
+            data["replyMarkup"] = {
+                "inlineKeyboard": keyboard
+            }
+        else:
+            data["replyMarkup"] = {
+                "keyboard": keyboard,
+                "resizeKeyboard": True
+            }
     try:
-        requests.post(url, json=data)
+        res = requests.post(url, json=data)
+        if res.status_code != 200:
+            print("❌ خطا در ارسال پیام:", res.text)
     except Exception as e:
         print(f"Error sending message: {e}")
 
@@ -39,5 +47,4 @@ def format_price(price):
     return f"{price:,} تومان"
 
 def has_joined_required_channels(user_info):
-    # جای بررسی عضویت اجباری (در صورت نیاز می‌تونی تکمیلش کنی)
-    return True
+    return True  # در صورت نیاز عضویت اجباری رو اینجا کنترل کن
