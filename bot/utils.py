@@ -44,3 +44,17 @@ def send_buttons(chat_id, text, buttons):
         requests.post(API_URL + "sendMessage", json=payload)
     except Exception as e:
         print("❌ خطا در ارسال دکمه‌ها:", e)
+
+def edit_message(chat_id, message_id, text):
+    if not text or not chat_id or not message_id:
+        print("⚠️ داده ناقص برای ویرایش پیام.")
+        return
+    payload = {
+        "chat_id": chat_id,
+        "message_id": message_id,
+        "text": text
+    }
+    try:
+        requests.post(API_URL + "editMessageText", json=payload)
+    except Exception as e:
+        print("❌ خطا در ویرایش پیام:", e)
