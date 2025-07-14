@@ -1,15 +1,40 @@
 from bot.utils import send_message, load_data, save_data, edit_message
-from bot.config import ORDER_CHANNEL_ID, BALANCE_CHANNEL_ID
+from bot.config import ORDER_CHANNEL_ID, BALANCE_CHANNEL_ID, SUPPORT_IDS
 
 def handle_callback_query(callback_query):
     data = callback_query.get("data", "")
     user = callback_query.get("from", {})
     message = callback_query.get("message", {})
+    chat_id = message.get("chat", {}).get("id")
     msg_id = message.get("message_id")
 
-    if not data or ":" not in data:
+    if not data:
         return
 
+    # ✅ دکمه‌های منوی اصلی
+    if data == "shop":
+        send_message(chat_id, "🛍 به فروشگاه خوش آمدید!\n(در حال توسعه...)")
+        return
+
+    elif data == "account":
+        send_message(chat_id, "👤 اطلاعات حساب شما به زودی در دسترس خواهد بود.")
+        return
+
+    elif data == "group":
+        send_message(chat_id, "🛠 ابزارهای مدیریت گروه فعال نیستند.")
+        return
+
+    elif data == "support":
+        support = "\n".join(SUPPORT_IDS)
+        send_message(chat_id, f"📞 پشتیبانی:\n{support}")
+        return
+
+    # ⚠️ اگر دکمه‌ معتبر نیست
+    if ":" not in data:
+        send_message(chat_id, "❗ فرمان دکمه نامعتبر است.")
+        return
+
+    # 🔽 دکمه‌های با داده‌های خاص (تأیید/رد سفارش یا موجودی)
     parts = data.split(":")
     action = parts[0]
 
