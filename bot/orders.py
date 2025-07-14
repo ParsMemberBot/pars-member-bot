@@ -1,7 +1,7 @@
 import time
-from bot.utils import send_message, load_data, save_data
-from bot.config import ORDER_CHANNEL_ID
 import uuid
+from bot.utils import send_message, send_buttons, load_data, save_data
+from bot.config import ORDER_CHANNEL_ID
 
 def start_order_flow(chat_id, user_id):
     step_data = {
@@ -49,15 +49,26 @@ def handle_order_step(message, step_data):
                 break
         save_data("data/orders.json", orders)
 
-        # ارسال به کانال سفارشات
-        text = f"📦 سفارش جدید:\n\n"
-        text += f"👤 کاربر: {step_data['order']['user_id']}\n"
-        text += f"🗂 دسته: {step_data['order']['category']}\n"
-        text += f"📦 محصول: {step_data['order']['product']}\n"
-        text += f"📝 توضیحات: {step_data['order']['details']}\n"
-        text += f"⏳ وضعیت: در حال بررسی"
+        # متن سفارش
+        order_text = (
+            f"📦 سفارش جدید:\n\n"
+            f"👤 کاربر: {step_data['order']['user_id']}\n"
+            f"🗂 دسته: {step_data['order']['category']}\n"
+            f"📦 محصول: {step_data['order']['product']}\n"
+            f"📝 توضیحات: {step_data['order']['details']}\n"
+            f"🆔 شناسه سفارش: {step_data['order']['id']}\n"
+            f"⏳ وضعیت: در حال بررسی"
+        )
 
-        send_message(ORDER_CHANNEL_ID, text)
+        # دکمه تایید/رد
+        buttons = [
+            [
+                {"text": "✅ تایید سفارش", "callback_data": f"order_accept:{step_data['order']['user_id']}:{step_data['order']['id']}"},
+                {"text": "❌ رد سفارش", "callback_data": f"order_reject:{step_data['order']['user_id']}:{step_data['order']['id']}"}
+            ]
+        ]
+
+        send_buttons(ORDER_CHANNEL_ID, order_text, buttons)
 
         send_message(chat_id, "✅ سفارش شما با موفقیت ثبت شد. منتظر تایید بمانید.")
         return None
