@@ -4,6 +4,7 @@ from bot.config import TOKEN
 
 API_URL = f"https://tapi.bale.ai/bot{TOKEN}/"
 
+
 def load_data(file_path):
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -11,11 +12,13 @@ def load_data(file_path):
     except:
         return [] if file_path.endswith(".json") else {}
 
+
 def save_data(file_path, data):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-def send_message(chat_id, text):
+
+def send_message(chat_id, text, reply_markup=None):
     if not text or not chat_id:
         print("⚠️ پیام یا chat_id خالی است.")
         return
@@ -23,10 +26,14 @@ def send_message(chat_id, text):
         "chat_id": chat_id,
         "text": text
     }
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+
     try:
         requests.post(API_URL + "sendMessage", json=payload)
     except Exception as e:
         print("❌ خطا در ارسال پیام:", e)
+
 
 def send_buttons(chat_id, text, buttons):
     if not text or not chat_id:
@@ -43,6 +50,7 @@ def send_buttons(chat_id, text, buttons):
         requests.post(API_URL + "sendMessage", json=payload)
     except Exception as e:
         print("❌ خطا در ارسال دکمه‌ها:", e)
+
 
 def edit_message(chat_id, message_id, text, buttons=None):
     if not chat_id or not message_id:
@@ -62,15 +70,20 @@ def edit_message(chat_id, message_id, text, buttons=None):
     except Exception as e:
         print("❌ خطا در ویرایش پیام:", e)
 
+
 def send_menu(chat_id):
     text = "به منوی اصلی ربات خوش آمدید 🌟"
     buttons = [
-        [{"text": "🛒 فروشگاه", "callback_data": "shop"}],
-        [{"text": "👤 حساب کاربری", "callback_data": "account"}],
-        [{"text": "🛠 مدیریت گروه", "callback_data": "group"}],
-        [{"text": "📞 پشتیبانی", "callback_data": "support"}]
+        [{"text": "💰 افزایش موجودی"}],
+        [{"text": "🛒 ثبت سفارش"}, {"text": "📩 حساب کاربری"}],
+        [{"text": "🔧 پنل مدیریت"}, {"text": "ℹ️ پشتیبانی"}],
     ]
-    send_buttons(chat_id, text, buttons)
+    reply_markup = {
+        "keyboard": buttons,
+        "resize_keyboard": True
+    }
+    send_message(chat_id, text, reply_markup=reply_markup)
+
 
 def user_link(user):
     if user.get("username"):
