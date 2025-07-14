@@ -2,7 +2,7 @@ import requests
 import json
 import os
 
-TOKEN = "توکن_واقعی_تو_اینجا"
+TOKEN = "1010361809:u9favCTJqt5zgmHkMAhO2sBJYqMUcsMkCCiycx1D"
 API_URL = f"https://tapi.bale.ai/bot{TOKEN}/"
 
 def send_message(chat_id, text, reply_markup=None):
