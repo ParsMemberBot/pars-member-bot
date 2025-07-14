@@ -6,7 +6,7 @@ from bot.utils import load_data, save_data
 from bot.commands import handle_command  # ✅ هدایت تمام دستورات به این تابع
 
 # 🔐 توکن واقعی ربات شما
-TOKEN = "1010361809:ZmiQrwFd9PDofNsoFFiGl67kG6Sk9znxqoLHZi27"
+TOKEN = "1010361809:u9favCTJqt5zgmHkMAhO2sBJYqMUcsMkCCiycx1D"
 API_URL = f"https://tapi.bale.ai/bot{TOKEN}/"
 
 OFFSET_FILE = "data/offset.txt"
