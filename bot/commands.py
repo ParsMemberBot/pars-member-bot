@@ -9,7 +9,7 @@ def send_main_menu(chat_id):
         [{"text": "🛍️ فروشگاه"}, {"text": "💬 پشتیبانی"}],
         [{"text": "🛠 پنل مدیریت"}]
     ]
-    send_message(chat_id, "⚪ منوی اصلی:", keyboard=keyboard)
+    send_message(chat_id, "⚪ منوی اصلی:", keyboard=keyboard, inline=False)
 
 def handle_command(message, is_group=False):
     text = message.get("text")
@@ -45,16 +45,5 @@ def handle_command(message, is_group=False):
         send_main_menu(chat_id)
 
     else:
-        # بررسی فلوها
         if is_group:
             return
-
-        if text.startswith("/ai") or "هوش مصنوعی" in text or "ربات" in text:
-            send_message(chat_id, "🤖 این بخش هنوز فعال نشده است.")
-            return
-
-        if text.replace(" ", "").isdigit():
-            handle_balance_step(chat_id, user_id, text)
-            return
-
-        send_message(chat_id, "❗️ دستور نامعتبر است. لطفاً از منو استفاده کنید.")
