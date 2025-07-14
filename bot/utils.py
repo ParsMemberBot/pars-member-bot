@@ -4,8 +4,9 @@ from bot.config import TOKEN
 API_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
 def send_message(chat_id, text, keyboard=None, inline=False):
+    # بررسی اینکه متن پیام خالی نباشد
     if not text:
-        print("⛔ تلاش برای ارسال پیام بدون متن.")
+        print("⛔ تلاش برای ارسال پیام بدون متن. ارسال پیام لغو شد.")
         return
 
     url = f"{API_URL}/sendMessage"
