@@ -1,82 +1,65 @@
-import json
-import requests
-from bot.utils import send_message, load_data, save_data
-from bot.main import API_URL
-
-USERS_FILE = "data/users.json"
-ORDERS_FILE = "data/orders.json"
+from bot.utils import send_message, load_data, save_data, edit_message
+from bot.config import ORDER_CHANNEL_ID, BALANCE_CHANNEL_ID
 
 def handle_callback_query(callback_query):
-    data = callback_query.get("data")
-    msg = callback_query.get("message", {})
-    chat_id = msg.get("chat", {}).get("id")
-    message_id = msg.get("message_id")
-    from_id = callback_query.get("from", {}).get("id")
+    data = callback_query.get("data", "")
+    user = callback_query.get("from", {})
+    message = callback_query.get("message", {})
+    msg_id = message.get("message_id")
 
-    if data.startswith("balance_accept:"):
-        _, user_id, amount, req_id = data.split(":")
-        user_id = int(user_id)
-        amount = int(amount)
+    if not data or ":" not in data:
+        return
 
-        users = load_data(USERS_FILE)
-        if str(user_id) not in users:
-            users[str(user_id)] = {"balance": 0, "orders": []}
+    parts = data.split(":")
+    action = parts[0]
 
-        users[str(user_id)]["balance"] += amount
-        save_data(USERS_FILE, users)
+    if action == "order_accept" and len(parts) == 3:
+        user_id = int(parts[1])
+        order_id = parts[2]
 
-        send_message(user_id, f"✅ افزایش موجودی شما به مبلغ {amount} تومان تأیید شد.")
-        new_text = msg.get("text", "") + f"\n\n✅ توسط مدیر تأیید شد."
-        requests.post(API_URL + "editMessageText", json={
-            "chat_id": chat_id,
-            "message_id": message_id,
-            "text": new_text
-        })
+        orders = load_data("data/orders.json")
+        for o in orders:
+            if o["id"] == order_id:
+                o["status"] = "تایید شده"
+                save_data("data/orders.json", orders)
+                text = message["text"] + "\n✅ سفارش تایید شد."
+                edit_message(ORDER_CHANNEL_ID, msg_id, text)
+                send_message(user_id, "✅ سفارش شما تایید شد.")
+                break
 
-    elif data.startswith("balance_reject:"):
-        _, user_id, amount, req_id = data.split(":")
-        user_id = int(user_id)
+    elif action == "order_reject" and len(parts) == 3:
+        user_id = int(parts[1])
+        order_id = parts[2]
 
-        send_message(user_id, f"❌ افزایش موجودی شما به مبلغ {amount} تومان رد شد.")
-        new_text = msg.get("text", "") + f"\n\n❌ توسط مدیر رد شد."
-        requests.post(API_URL + "editMessageText", json={
-            "chat_id": chat_id,
-            "message_id": message_id,
-            "text": new_text
-        })
+        orders = load_data("data/orders.json")
+        for o in orders:
+            if o["id"] == order_id:
+                o["status"] = "رد شده"
+                save_data("data/orders.json", orders)
+                text = message["text"] + "\n❌ سفارش رد شد."
+                edit_message(ORDER_CHANNEL_ID, msg_id, text)
+                send_message(user_id, "❌ سفارش شما رد شد.")
+                break
 
-    elif data.startswith("order_accept:"):
-        _, user_id, order_id = data.split(":")
-        user_id = int(user_id)
+    elif action == "balance_accept" and len(parts) == 3:
+        user_id = int(parts[1])
+        amount = int(parts[2])
 
-        orders = load_data(ORDERS_FILE)
-        order = next((o for o in orders if o["id"] == order_id), None)
+        users = load_data("data/users.json")
+        for u in users:
+            if u["user_id"] == user_id:
+                u["balance"] += amount
+                break
+        else:
+            users.append({"user_id": user_id, "balance": amount})
 
-        if order:
-            order["status"] = "done"
-            save_data(ORDERS_FILE, orders)
-            send_message(user_id, f"✅ سفارش شما با شناسه {order_id} تأیید شد و در حال انجام است.")
-            new_text = msg.get("text", "") + "\n\n✅ توسط مدیر تأیید شد."
-            requests.post(API_URL + "editMessageText", json={
-                "chat_id": chat_id,
-                "message_id": message_id,
-                "text": new_text
-            })
+        save_data("data/users.json", users)
+        text = message["text"] + "\n✅ افزایش موجودی تایید شد."
+        edit_message(BALANCE_CHANNEL_ID, msg_id, text)
+        send_message(user_id, f"✅ موجودی شما {amount} تومان افزایش یافت.")
 
-    elif data.startswith("order_reject:"):
-        _, user_id, order_id = data.split(":")
-        user_id = int(user_id)
-
-        orders = load_data(ORDERS_FILE)
-        order = next((o for o in orders if o["id"] == order_id), None)
-
-        if order:
-            order["status"] = "rejected"
-            save_data(ORDERS_FILE, orders)
-            send_message(user_id, f"❌ سفارش شما با شناسه {order_id} رد شد.")
-            new_text = msg.get("text", "") + "\n\n❌ توسط مدیر رد شد."
-            requests.post(API_URL + "editMessageText", json={
-                "chat_id": chat_id,
-                "message_id": message_id,
-                "text": new_text
-            })
+    elif action == "balance_reject" and len(parts) == 2:
+        user_id = int(parts[1])
+        text = message["text"] + "\n❌ افزایش موجودی رد شد."
+        edit_message(BALANCE_CHANNEL_ID, msg_id, text)
+        send_message(user_id, "❌ افزایش موجودی شما رد شد.")
