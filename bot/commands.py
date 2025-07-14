@@ -3,7 +3,7 @@ from bot.admin import handle_admin_panel
 from bot.group import handle_group_message
 from bot.store import handle_store
 from bot.admin_actions import handle_admin_action
-from bot.balance import handle_balance_step as handle_balance_request
+from bot.balance import handle_balance_step
 from bot.utils import send_message
 
 def handle_command(msg, is_group):
@@ -15,7 +15,7 @@ def handle_command(msg, is_group):
         handle_start(chat_id, user_id)
 
     elif text in ["منو", "بازگشت"]:
-        handle_menu(chat_id, user_id)
+        handle_menu(chat_id, user_id, is_group)
 
     elif text in ["🛍 فروشگاه", "فروشگاه", "سفارش"]:
         handle_store(chat_id, user_id)
@@ -23,9 +23,8 @@ def handle_command(msg, is_group):
     elif text in ["🛠 پنل مدیریت", "پنل مدیریت", "/admin"]:
         handle_admin_panel(chat_id, user_id)
 
-    elif text in ["👮‍♂️ مدیریت گروه", "مدیریت گروه"]:
-        if is_group:
-            handle_group_message(msg)
+    elif text in ["👮‍♂️ مدیریت گروه", "مدیریت گروه"] and is_group:
+        handle_group_message(msg)
 
     elif text in ["📥 حساب کاربری", "حساب کاربری"]:
         send_message(chat_id, "🚧 بخش حساب کاربری در دست ساخت است.")
@@ -34,7 +33,7 @@ def handle_command(msg, is_group):
         send_message(chat_id, "📞 برای پشتیبانی با آیدی زیر تماس بگیرید:\n@CyrusParsy")
 
     elif text in ["💵 افزایش موجودی", "افزایش موجودی"]:
-        handle_balance_request(chat_id, user_id)
+        handle_balance_step(chat_id, user_id)
 
     elif is_admin_action(text):
         handle_admin_action(chat_id, user_id, text)
@@ -44,11 +43,11 @@ def handle_command(msg, is_group):
 
 def is_admin_action(text):
     admin_buttons = [
-        "افزودن محصول",
-        "افزودن دسته‌بندی",
-        "لیست سفارشات",
-        "مدیریت کاربران",
-        "تنظیمات ربات",
+        "📦 افزودن محصول",
+        "📂 افزودن دسته‌بندی",
+        "🧾 لیست سفارشات",
+        "👥 مدیریت کاربران",
+        "⚙️ تنظیمات ربات",
         "📨 پیام همگانی"
     ]
     return text in admin_buttons
