@@ -1,10 +1,9 @@
 from bot.utils import send_message
+from bot.start import handle_start, handle_menu
 from bot.store import handle_store
 from bot.admin import handle_admin_panel
 from bot.group import handle_group_message
 from bot.fun import handle_fun_commands
-from bot.buttons import main_menu_keyboard
-from bot.commands import handle_start, handle_menu
 
 def handle_command(message, is_group=False):
     if not message:
@@ -32,13 +31,7 @@ def handle_command(message, is_group=False):
         handle_store(chat_id, user_id)
     elif "پنل مدیریت" in text:
         handle_admin_panel(chat_id, user_id)
-    elif "سرگرمی" in text or text in ["جوک", "فال", "/ai", "هوش مصنوعی", "ربات"]:
+    elif text in ["جوک", "فال"] or text.startswith("/ai") or text.startswith("هوش مصنوعی") or text.startswith("ربات"):
         handle_fun_commands(message)
-    elif "حساب" in text:
-        send_message(chat_id, "💼 اطلاعات حساب شما اینجاست...")
-    elif "پشتیبانی" in text:
-        send_message(chat_id, "📞 برای پشتیبانی با @CyrusParsy در ارتباط باشید.")
-    elif "مدیریت گروه" in text:
-        send_message(chat_id, "🔧 وارد بخش مدیریت گروه شدید. فعلاً دستورات را تایپ کنید.")
     else:
         send_message(chat_id, "❗️دستور نامعتبر است. لطفاً از منو استفاده کنید.")
