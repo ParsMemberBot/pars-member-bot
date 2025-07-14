@@ -1,5 +1,6 @@
 from bot.start import handle_start, handle_menu
 from bot.admin import handle_admin_panel
+from bot.admin_actions import handle_admin_action
 from bot.group import handle_group_message
 from bot.store import handle_store
 from bot.utils import send_message
@@ -10,9 +11,9 @@ def handle_command(msg, is_group):
     text = msg.get("text", "")
 
     if text.startswith("/start"):
-        handle_start(chat_id, user_id)
+        handle_start(chat_id, user_id, is_group)
     elif text in ["منو", "بازگشت"]:
-        handle_menu(chat_id, user_id)
+        handle_menu(chat_id, user_id, is_group)
     elif text in ["🛍 فروشگاه", "فروشگاه", "سفارش"]:
         handle_store(chat_id, user_id)
     elif text in ["🛠 پنل مدیریت", "پنل مدیریت", "/admin"]:
@@ -23,5 +24,9 @@ def handle_command(msg, is_group):
         send_message(chat_id, "🚧 بخش حساب کاربری در دست ساخت است.")
     elif text in ["💬 پشتیبانی", "پشتیبانی"]:
         send_message(chat_id, "📞 برای پشتیبانی با آیدی زیر تماس بگیرید:\n@CyrusParsy")
+    elif text in ["💵 افزایش موجودی", "افزایش موجودی"]:
+        send_message(chat_id, "🔢 لطفاً مبلغ مورد نظر برای افزایش موجودی را وارد کنید.")
     else:
-        send_message(chat_id, "❗️ دستور نامعتبر است. لطفاً از منو استفاده کنید.")
+        # بررسی کن آیا دستور ادمینی است
+        if not handle_admin_action(chat_id, user_id, text):
+            send_message(chat_id, "❗️ دستور نامعتبر است. لطفاً از منو استفاده کنید.")
