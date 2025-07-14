@@ -1,3 +1,4 @@
+
 import time
 import uuid
 from bot.utils import send_message, send_buttons, load_data, save_data
@@ -19,7 +20,7 @@ def start_order_flow(chat_id, user_id):
     orders.append(step_data["order"])
     save_data("data/orders.json", orders)
 
-    send_message(chat_id, "لطفاً دسته‌بندی محصول را وارد کنید:")
+    send_message(chat_id, "🗂 لطفاً دسته‌بندی محصول را وارد کنید:")
     return step_data
 
 def handle_order_step(message, step_data):
@@ -29,13 +30,13 @@ def handle_order_step(message, step_data):
     if step_data["step"] == "awaiting_category":
         step_data["order"]["category"] = text
         step_data["step"] = "awaiting_product"
-        send_message(chat_id, "نام محصول مورد نظر را وارد کنید:")
+        send_message(chat_id, "📦 لطفاً نام محصول مورد نظر را وارد کنید:")
         return step_data
 
     elif step_data["step"] == "awaiting_product":
         step_data["order"]["product"] = text
         step_data["step"] = "awaiting_details"
-        send_message(chat_id, "توضیحات سفارش را وارد کنید:")
+        send_message(chat_id, "📝 لطفاً توضیحات سفارش را وارد کنید:")
         return step_data
 
     elif step_data["step"] == "awaiting_details":
@@ -43,14 +44,14 @@ def handle_order_step(message, step_data):
         step_data["step"] = "completed"
 
         orders = load_data("data/orders.json")
-        for order in orders:
-            if order["id"] == step_data["order"]["id"]:
-                order.update(step_data["order"])
+        for o in orders:
+            if o["id"] == step_data["order"]["id"]:
+                o.update(step_data["order"])
                 break
         save_data("data/orders.json", orders)
 
-        # متن سفارش
-        order_text = (
+        # متن نهایی سفارش
+        text = (
             f"📦 سفارش جدید:\n\n"
             f"👤 کاربر: {step_data['order']['user_id']}\n"
             f"🗂 دسته: {step_data['order']['category']}\n"
@@ -60,15 +61,12 @@ def handle_order_step(message, step_data):
             f"⏳ وضعیت: در حال بررسی"
         )
 
-        # دکمه تایید/رد
-        buttons = [
-            [
-                {"text": "✅ تایید سفارش", "callback_data": f"order_accept:{step_data['order']['user_id']}:{step_data['order']['id']}"},
-                {"text": "❌ رد سفارش", "callback_data": f"order_reject:{step_data['order']['user_id']}:{step_data['order']['id']}"}
-            ]
-        ]
+        buttons = [[
+            {"text": "✅ تایید", "callback_data": f"order_accept:{step_data['order']['user_id']}:{step_data['order']['id']}"},
+            {"text": "❌ رد", "callback_data": f"order_reject:{step_data['order']['user_id']}:{step_data['order']['id']}"}
+        ]]
 
-        send_buttons(ORDER_CHANNEL_ID, order_text, buttons)
+        send_buttons(ORDER_CHANNEL_ID, text, buttons)
 
         send_message(chat_id, "✅ سفارش شما با موفقیت ثبت شد. منتظر تایید بمانید.")
         return None
