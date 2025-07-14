@@ -1,59 +1,60 @@
-from bot.menu import send_main_menu
+from bot.utils import send_message
 from bot.admin_actions import handle_admin_action
-from bot.balance import handle_balance_request, handle_balance_step
-from bot.shop import handle_shop_action
-from bot.group import handle_group_command
-from bot.users import check_or_create_user
+from bot.balance import start_balance_flow, handle_balance_step
+from bot.orders import start_order_flow, handle_order_step
 
-def is_admin_action(text):
-    return text in [
-        '🛠 پنل مدیریت', '📦 افزودن محصول', '📂 افزودن دسته‌بندی',
-        '🧾 لیست سفارشات', '👤 مدیریت کاربران', '◀️ بازگشت',
-        '➕ افزودن موجودی', '📊 آمار', '🔙 منوی اصلی'
+def send_main_menu(chat_id):
+    keyboard = [
+        [{"text": "📩 حساب کاربری"}, {"text": "💰 افزایش موجودی"}],
+        [{"text": "🛍️ فروشگاه"}, {"text": "💬 پشتیبانی"}],
+        [{"text": "🛠 پنل مدیریت"}]
     ]
-
-def is_user_command(text):
-    return text in [
-        '💰 افزایش موجودی', '🛒 فروشگاه', '🧾 سفارشات من', '💼 حساب کاربری', '💬 پشتیبانی'
-    ]
+    send_message(chat_id, "⚪ منوی اصلی:", keyboard=keyboard)
 
 def handle_command(message, is_group=False):
-    chat_id = message['chat']['id']
-    user_id = message['from']['id']
-    text = message.get('text', '')
+    text = message.get("text")
+    chat_id = message["chat"]["id"]
+    user_id = message["from"]["id"]
 
-    # بررسی و ساخت کاربر در صورت عدم وجود
-    check_or_create_user(user_id)
-
-    if is_group:
-        handle_group_command(message)
+    if not text:
         return
 
-    if text == '/start' or text == '🔙 منوی اصلی':
+    if text.startswith("/start"):
+        send_message(chat_id, "✨ به ربات خوش آمدید!")
         send_main_menu(chat_id)
-    
-    elif text == '💼 حساب کاربری':
-        from bot.users import handle_account
-        handle_account(chat_id, user_id)
-    
-    elif text == '💰 افزایش موجودی':
-        handle_balance_step(chat_id, user_id, text)
 
-    elif text == '🛒 فروشگاه':
-        handle_shop_action(chat_id, user_id, text)
+    elif text == "📩 حساب کاربری":
+        send_message(chat_id, "🚧 بخش حساب کاربری در دست ساخت است.")
 
-    elif text == '💬 پشتیبانی':
-        from bot.support import handle_support
-        handle_support(chat_id)
+    elif text == "💬 پشتیبانی":
+        send_message(chat_id, "📞 برای پشتیبانی با آیدی زیر تماس بگیرید:\n@CyrusParsy")
 
-    elif is_admin_action(text):
-        handle_admin_action(chat_id, user_id, text)
+    elif text == "💰 افزایش موجودی":
+        start_balance_flow(chat_id, user_id)
 
-    elif is_user_command(text):
-        # اگر دستور کاربری معتبر بود ولی هنوز پیاده‌سازی نشده
-        from bot.utils import send_message
-        send_message(chat_id, "در حال ساخت این بخش هستیم...")
+    elif text == "🛍️ فروشگاه":
+        send_message(chat_id, "هیچ دسته‌بندی‌ای در فروشگاه ثبت نشده است.")
+
+    elif text == "🛠 پنل مدیریت":
+        send_message(chat_id, "👋 به پنل مدیریت خوش آمدید:")
+
+    elif text == "⚪ منوی اصلی":
+        send_main_menu(chat_id)
+
+    elif text.startswith("بازگشت"):
+        send_main_menu(chat_id)
 
     else:
-        from bot.utils import send_message
-        send_message(chat_id, "❗️دستور نامعتبر است. لطفاً از منو استفاده کنید.")
+        # بررسی فلوها
+        if is_group:
+            return
+
+        if text.startswith("/ai") or "هوش مصنوعی" in text or "ربات" in text:
+            send_message(chat_id, "🤖 این بخش هنوز فعال نشده است.")
+            return
+
+        if text.replace(" ", "").isdigit():
+            handle_balance_step(chat_id, user_id, text)
+            return
+
+        send_message(chat_id, "❗️ دستور نامعتبر است. لطفاً از منو استفاده کنید.")
