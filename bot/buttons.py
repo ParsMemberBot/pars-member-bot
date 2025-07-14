@@ -1,19 +1,20 @@
 from bot.utils import load_data
 
-def main_menu_keyboard(user_id=None):
-    # منوی عمومی برای همه
+def main_menu_keyboard(user_id=None, is_group=False):
     buttons = [
         [{"text": "🛍 فروشگاه"}, {"text": "📥 حساب کاربری"}],
-        [{"text": "👮‍♂️ مدیریت گروه"}, {"text": "🎮 سرگرمی"}],
+        [{"text": "💵 افزایش موجودی"}],
         [{"text": "💬 پشتیبانی"}]
     ]
 
-    # بررسی اگر user_id جزو adminها باشد → دکمه پنل مدیریت را اضافه کن
+    if is_group:
+        buttons.insert(1, [{"text": "👮‍♂️ مدیریت گروه"}, {"text": "🎮 سرگرمی"}])
+
     if user_id:
         settings = load_data("data/settings.json")
         admins = settings.get("admins", [])
-        if str(user_id) in [str(admin) for admin in admins]:
-            buttons.insert(-1, [{"text": "🛠 پنل مدیریت"}])  # قبل از پشتیبانی اضافه کن
+        if str(user_id) in map(str, admins):
+            buttons.insert(-1, [{"text": "🛠 پنل مدیریت"}])
 
     return {
         "keyboard": buttons,
