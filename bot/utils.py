@@ -1,6 +1,8 @@
 import json
 import requests
-from bot.main import API_URL
+from bot.config import TOKEN
+
+API_URL = f"https://tapi.bale.ai/bot{TOKEN}/"
 
 def load_data(file_path):
     try:
@@ -16,6 +18,7 @@ def save_data(file_path, data):
 
 def send_message(chat_id, text):
     if not text or not chat_id:
+        print("⚠️ پیام خالی یا chat_id نامعتبر بود، ارسال نشد.")
         return
     payload = {
         "chat_id": chat_id,
@@ -28,6 +31,7 @@ def send_message(chat_id, text):
 
 def send_buttons(chat_id, text, buttons):
     if not text or not chat_id:
+        print("⚠️ متن یا chat_id برای دکمه خالی بود.")
         return
     payload = {
         "chat_id": chat_id,
