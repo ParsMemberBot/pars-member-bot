@@ -1,4 +1,4 @@
-from bot.utils import send_message, send_menu
+from bot.utils import send_message
 from bot.balance import start_balance_flow
 from bot.orders import start_order_flow
 from bot.config import SUPPORT_IDS
