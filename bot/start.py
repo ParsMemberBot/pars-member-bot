@@ -12,8 +12,8 @@ def handle_start(chat_id, user_id):
         save_data("data/users.json", users)
 
     text = "👋 خوش آمدید!\nبه ربات فروش خدمات و مدیریت گروه خوش آمدید."
-    send_message(chat_id, text, reply_markup=main_menu_keyboard())
+    send_message(chat_id, text, reply_markup=main_menu_keyboard(user_id))
 
 def handle_menu(chat_id, user_id):
-    text = "📋 منوی اصلی را انتخاب کنید:"
-    send_message(chat_id, text, reply_markup=main_menu_keyboard())
+    text = "📋 لطفاً یکی از گزینه‌های منو را انتخاب کنید:"
+    send_message(chat_id, text, reply_markup=main_menu_keyboard(user_id))
