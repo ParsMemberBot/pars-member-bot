@@ -1,5 +1,7 @@
-from bot.utils import send_message
+from bot.utils import send_message, send_menu
 from bot.balance import start_balance_flow
+from bot.orders import start_order_flow
+from bot.config import SUPPORT_IDS
 
 def handle_command(message, is_group=False):
     chat = message.get("chat", {})
@@ -12,40 +14,31 @@ def handle_command(message, is_group=False):
 
     # پاسخ به /start
     if text == "/start":
-        send_message(
-            chat_id,
-            "👋 خوش آمدید! لطفاً یک گزینه را انتخاب کنید.",
-            reply_markup={
-                "keyboard": [
-                    [{"text": "💰 افزایش موجودی"}],
-                    [{"text": "🛍 فروشگاه"}, {"text": "📩 حساب کاربری"}],
-                    [{"text": "🔧 پنل مدیریت"}, {"text": "💬 پشتیبانی"}],
-                ],
-                "resize_keyboard": True
-            }
-        )
+        send_message(chat_id, "👋 خوش آمدید! لطفاً از منوی زیر انتخاب کنید:")
+        send_menu(chat_id)
         return
 
-    # دستورات دکمه‌ها
+    # دستورات منو
     if text == "💰 افزایش موجودی":
         start_balance_flow(chat_id, user_id)
         return
 
-    if text == "🛍 فروشگاه":
-        send_message(chat_id, "🛒 فروشگاه به‌زودی فعال می‌شود.")
+    if text == "🛒 ثبت سفارش":
+        start_order_flow(chat_id, user_id)
         return
 
     if text == "📩 حساب کاربری":
-        send_message(chat_id, "📬 اطلاعات حساب کاربری شما به‌زودی نمایش داده می‌شود.")
+        send_message(chat_id, "📬 اطلاعات حساب کاربری شما به‌زودی اضافه می‌شود.")
         return
 
     if text == "🔧 پنل مدیریت":
-        send_message(chat_id, "🔧 پنل مدیریت در حال توسعه است.")
+        send_message(chat_id, "🛠 پنل مدیریت در حال توسعه است.")
         return
 
-    if text == "💬 پشتیبانی":
-        send_message(chat_id, "📞 ارتباط با پشتیبانی: @CyrusParsy")
+    if text == "ℹ️ پشتیبانی":
+        support = "\n".join(SUPPORT_IDS)
+        send_message(chat_id, f"📞 پشتیبانی:\n{support}")
         return
 
-    # پاسخ پیش‌فرض برای دستورات ناشناخته
-    send_message(chat_id, "❗دستور نامعتبر است.")
+    # اگر دستور ناشناخته بود
+    send_message(chat_id, "❗ دستور نامعتبر است.")
