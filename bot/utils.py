@@ -1,29 +1,43 @@
 import requests
-import json
+from bot.config import TOKEN
 
-# توکن ربات توی این آدرس API جایگذاری شده
-API_URL = "https://tapi.bale.ai/bot1010361809:ZmiQrwFd9PDofNsoFFiGl67kG6Sk9znxqoLHZi27/"
+API_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
-def send_message(chat_id, text, reply_markup=None):
-    data = {"chat_id": chat_id, "text": text}
-    if reply_markup:
-        data["reply_markup"] = json.dumps(reply_markup)
-    requests.post(API_URL + "sendMessage", data=data)
-
-def kick_user(chat_id, user_id):
+def send_message(chat_id, text, keyboard=None):
+    url = f"{API_URL}/sendMessage"
     data = {
-        "chat_id": chat_id,
-        "user_id": user_id
+        "chatId": chat_id,
+        "message": text
     }
-    requests.post(API_URL + "kickChatMember", data=data)
-
-def load_data(filename):
+    if keyboard:
+        data["replyMarkup"] = {
+            "inlineKeyboard": keyboard
+        }
     try:
-        with open(filename, "r") as f:
-            return json.load(f)
-    except:
-        return {}
+        requests.post(url, json=data)
+    except Exception as e:
+        print(f"Error sending message: {e}")
 
-def save_data(filename, data):
-    with open(filename, "w") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+def load_data(path):
+    import json, os
+    if not os.path.exists(path):
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def save_data(path, data):
+    import json
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+def is_user_admin(user_id):
+    from bot.config import OWNER_ID
+    admins = load_data("data/admins.json").get("admins", [])
+    return user_id == OWNER_ID or user_id in admins
+
+def format_price(price):
+    return f"{price:,} تومان"
+
+def has_joined_required_channels(user_info):
+    # جای بررسی عضویت اجباری (در صورت نیاز می‌تونی تکمیلش کنی)
+    return True
