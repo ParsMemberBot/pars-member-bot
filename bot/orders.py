@@ -1,58 +1,63 @@
-
-import json
 import time
-import uuid
 from bot.utils import send_message, load_data, save_data
-from config import ORDER_CHANNEL_ID
+from bot.config import ORDER_CHANNEL_ID
+import uuid
 
-ORDERS_FILE = "data/orders.json"
-
-def create_order(user_id, category, product, quantity, price):
-    orders = load_data(ORDERS_FILE)
-    order_id = str(uuid.uuid4())[:8]
-    order = {
-        "id": order_id,
-        "user_id": user_id,
-        "category": category,
-        "product": product,
-        "quantity": quantity,
-        "price": price,
-        "status": "در حال بررسی",
-        "timestamp": int(time.time())
+def start_order_flow(chat_id, user_id):
+    step_data = {
+        "step": "awaiting_category",
+        "order": {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "chat_id": chat_id,
+            "status": "در حال بررسی",
+            "timestamp": int(time.time())
+        }
     }
-    orders.append(order)
-    save_data(ORDERS_FILE, orders)
-    return order
 
-def get_user_orders(user_id):
-    orders = load_data(ORDERS_FILE)
-    return [o for o in orders if o["user_id"] == user_id]
+    orders = load_data("data/orders.json")
+    orders.append(step_data["order"])
+    save_data("data/orders.json", orders)
 
-def get_order_by_id(order_id):
-    orders = load_data(ORDERS_FILE)
-    for o in orders:
-        if o["id"] == order_id:
-            return o
-    return None
+    send_message(chat_id, "لطفاً دسته‌بندی محصول را وارد کنید:")
+    return step_data
 
-def update_order_status(order_id, new_status):
-    orders = load_data(ORDERS_FILE)
-    for o in orders:
-        if o["id"] == order_id:
-            o["status"] = new_status
-            save_data(ORDERS_FILE, orders)
-            return True
-    return False
+def handle_order_step(message, step_data):
+    text = message.get("text", "").strip()
+    chat_id = message["chat"]["id"]
 
-def send_order_to_channel(order, bot):
-    msg = (
-        f"🛒 سفارش جدید ثبت شد\n\n"
-        f"🆔 کد سفارش: {order['id']}\n"
-        f"👤 آیدی عددی کاربر: {order['user_id']}\n"
-        f"📦 دسته: {order['category']}\n"
-        f"🛍️ محصول: {order['product']}\n"
-        f"🔢 تعداد: {order['quantity']}\n"
-        f"💰 مبلغ: {order['price']} تومان\n\n"
-        f"📌 برای تأیید یا رد از پنل استفاده کنید."
-    )
-    bot.send_message(chat_id=ORDER_CHANNEL_ID, text=msg)
+    if step_data["step"] == "awaiting_category":
+        step_data["order"]["category"] = text
+        step_data["step"] = "awaiting_product"
+        send_message(chat_id, "نام محصول مورد نظر را وارد کنید:")
+        return step_data
+
+    elif step_data["step"] == "awaiting_product":
+        step_data["order"]["product"] = text
+        step_data["step"] = "awaiting_details"
+        send_message(chat_id, "توضیحات سفارش را وارد کنید:")
+        return step_data
+
+    elif step_data["step"] == "awaiting_details":
+        step_data["order"]["details"] = text
+        step_data["step"] = "completed"
+
+        orders = load_data("data/orders.json")
+        for order in orders:
+            if order["id"] == step_data["order"]["id"]:
+                order.update(step_data["order"])
+                break
+        save_data("data/orders.json", orders)
+
+        # ارسال به کانال سفارشات
+        text = f"📦 سفارش جدید:\n\n"
+        text += f"👤 کاربر: {step_data['order']['user_id']}\n"
+        text += f"🗂 دسته: {step_data['order']['category']}\n"
+        text += f"📦 محصول: {step_data['order']['product']}\n"
+        text += f"📝 توضیحات: {step_data['order']['details']}\n"
+        text += f"⏳ وضعیت: در حال بررسی"
+
+        send_message(ORDER_CHANNEL_ID, text)
+
+        send_message(chat_id, "✅ سفارش شما با موفقیت ثبت شد. منتظر تایید بمانید.")
+        return None
