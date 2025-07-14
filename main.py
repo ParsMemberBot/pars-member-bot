@@ -3,9 +3,9 @@ import json
 import time
 import requests
 from bot.utils import load_data, save_data
-from bot.commands import handle_command  # ✅ هدایت تمام دستورات به این تابع
+from bot.commands import handle_command
 
-# 🔐 توکن ربات
+# 🔐 توکن رباتت رو اینجا قرار بده
 TOKEN = "1010361809:u9favCTJqt5zgmHkMAhO2sBJYqMUcsMkCCiycx1D"
 API_URL = f"https://tapi.bale.ai/bot{TOKEN}/"
 
@@ -28,9 +28,12 @@ def handle_update(update):
     msg = update["message"]
     is_group = msg.get("chat", {}).get("type") in ["group", "supergroup"]
 
-    print("📥 پیام دریافتی:", msg)  # 👈 اضافه شده برای بررسی
+    print("📥 پیام دریافتی:", msg)  # برای دیباگ
 
-    handle_command(msg, is_group)
+    try:
+        handle_command(msg, is_group)
+    except Exception as e:
+        print("❌ خطا در پردازش پیام:", e)
 
 def main():
     print("✅ ربات با موفقیت روشن شد.")
@@ -47,9 +50,13 @@ def main():
         updates = get_updates(offset)
         for update in updates:
             handle_update(update)
-            offset = update["updateId"] + 1
-            with open(OFFSET_FILE, "w") as f:
-                f.write(str(offset))
+
+            message = update.get("message", {})
+            message_id = message.get("message_id")
+            if message_id:
+                offset = message_id + 1
+                with open(OFFSET_FILE, "w") as f:
+                    f.write(str(offset))
         time.sleep(1)
 
 if __name__ == "__main__":
