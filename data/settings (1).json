@@ -1,7 +1,0 @@
-{
-  "welcome_message": "👋 خوش آمدید به ربات!",
-  "force_channel": {
-    "enabled": false,
-    "channel_id": ""
-  }
-}
