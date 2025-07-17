@@ -1,4 +1,0 @@
-balethon
-httpx
-requests
-python-dotenv
